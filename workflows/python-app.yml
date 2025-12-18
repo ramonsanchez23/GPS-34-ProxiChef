@@ -9,25 +9,29 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # Requisit: Imatge docker de python
+    # Requisit: Imatge docker de python segons la teva configuració
     container: python:3.10
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
+        # Instal·lem les eines de qualitat i les dependències del projecte
         pip install pylint pytest pytest-cov
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
     - name: Analitzador de codi estàtic (pylint)
       run: |
-        # Executa pylint sobre els fitxers .py. Ajusta el patró si cal.
-        # El '|| true' evita que el pipeline falli si el pylint troba warnings no crítics
-        pylint $(git ls-files '*.py') || true
+        # Executem pylint específicament sobre els teus fitxers de codi
+        # Hem exclòs fitxers ocults o binaris si n'hi hagués
+        pylint main.py transform.py test.py || true
 
-    - name: Executar test i el seu coverage
+    - name: Executar tests i coverage
       run: |
-        # Executa pytest amb l'informe de cobertura
-        pytest --cov=./ --cov-report=term-missing
+        # Executem pytest. Com que el teu fitxer es diu 'test.py', 
+        # pytest el detectarà automàticament.
+        # Calculem el coverage sobre els fitxers de lògica (main i transform)
+        pytest --cov=main --cov=transform --cov-report=term-missing test.py
